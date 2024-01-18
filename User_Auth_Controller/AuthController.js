@@ -1,5 +1,5 @@
 const { Error } = require('mongoose');
-const User = require('../user_model/userModel')
+const post = require('../user_model/blogPosts')
 const asyncHandler = require('express-async-handler')
 const { redisStore, client } = require('../helpers/redisClient');
 const path = require("path");

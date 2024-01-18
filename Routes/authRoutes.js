@@ -1,5 +1,5 @@
 const express = require('express');
-const User = require('../user_model/userModel');
+const post = require('../user_model/blogPosts');
 const { pageViews, getUsername, updateUsername, destroySession, scriptSomething, clickjacking, logginCheck, login, form, registerUser, loginUser, homePage, } = require('../User_Auth_Controller/AuthController');
 
 

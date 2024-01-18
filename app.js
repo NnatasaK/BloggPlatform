@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const connect = require('connect-redis');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
-const User = require('./user_model/userModel');
+const post = require('./user_model/blogPosts');
 const userRoute = require('./Routes/authRoutes');
 const errorMiddleware = require('./error_middleware/errorMiddleware');
 const session = require('express-session');
@@ -42,8 +42,9 @@ app.set('layout', './layouts/main');
 app.set("view engine", "ejs");
 app.use(errorMiddleware);
 app.use(express.static("public"));
-app.use('/auth', userRoute);
 app.use(ejsLayout);
+app.use('/auth', userRoute);
+
 
 
 
