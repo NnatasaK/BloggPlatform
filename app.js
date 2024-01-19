@@ -5,12 +5,13 @@ const mongoose = require('mongoose');
 const connect = require('connect-redis');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
-const post = require('./user_model/blogPosts');
+const Post = require('./user_model/blogPosts');
 const userRoute = require('./Routes/authRoutes');
+const postRoute = require('./Routes/postRoutes');
 const errorMiddleware = require('./error_middleware/errorMiddleware');
 const session = require('express-session');
 const { default: helmet } = require('helmet');
-const { redisStore, client } = require('./helpers/redisClient');
+const { redisStore, redisClient } = require('./helpers/redisClient');
 const ejsLayout = require('express-ejs-layouts');
 
 
@@ -43,7 +44,8 @@ app.set("view engine", "ejs");
 app.use(errorMiddleware);
 app.use(express.static("public"));
 app.use(ejsLayout);
-app.use('/auth', userRoute);
+app.use('/', userRoute);
+app.use('/posts', postRoute);
 
 
 

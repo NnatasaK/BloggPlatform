@@ -1,15 +1,15 @@
 const { Error } = require('mongoose');
-const post = require('../user_model/blogPosts')
+const Post = require('../user_model/blogPosts')
 const asyncHandler = require('express-async-handler')
-const { redisStore, client } = require('../helpers/redisClient');
+const { redisStore, redisClient } = require('../helpers/redisClient');
 const path = require("path");
 const { compareSync, hashSync } = require('bcrypt');
 
-// Show page views with render or headers
+// Admin - login page
 
-const homePage = async (req, res) => {
+const loginPage = async (req, res) => {
     try {
-        res.render('index');
+        res.render('admin/index', {});
 
     } catch (error) {
         res.status(500);
@@ -52,7 +52,7 @@ const logginCheck = async (req, res) => {
 const login = async (req, res) => {
     try {
         const { username, password } = req.body;
-        const dbPassword = await client.get(`user:${username}`);
+        const dbPassword = await redisClient.get(`user:${username}`);
         if (password === dbPassword) {
             req.session.isLoggedIn = true;
             res.redirect("/protected");
@@ -90,7 +90,7 @@ const registerUser = async (req, res) => {
         const hashedPassword = hashSync(password, 10);
 
         //Med detta så lagras det hashade värdet i databasen.
-        await client.set(`user:${username}`, hashedPassword);
+        await redisClient.set(`user:${username}`, hashedPassword);
         res.send("Successfully registered!");
 
     } catch (error) {
@@ -102,7 +102,7 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
     try {
         const { username, password } = req.body;
-        const dbPassword = await client.get(`user:${username}`);
+        const dbPassword = await redisClient.get(`user:${username}`);
         //CompareSync hashar det första argumentet och kollar om det blir det andra argumentet.
         if (compareSync(password, dbPassword)) {
             req.session.isLoggedIn = true;
@@ -124,7 +124,7 @@ const loginUser = async (req, res) => {
 
 const getUsername = async (req, res) => {
     try {
-        const username = await client.get("username"); //get username
+        const username = await redisClient.get("username"); //get username
         res.send(username);
 
     } catch (error) {
@@ -136,7 +136,7 @@ const getUsername = async (req, res) => {
 
 const updateUsername = async (req, res) => {
     try {
-        await client.set("username", "nnat"); //set new username
+        await redisClient.set("username", "nnat"); //set new username
         res.send("Username updated");
 
     } catch (error) {
@@ -212,7 +212,7 @@ const clickjacking = async (req, res) => {
 
 
 module.exports = {
-    homePage,
+    loginPage,
     pageViews,
     getUsername,
     updateUsername,

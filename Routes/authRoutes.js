@@ -1,13 +1,13 @@
 const express = require('express');
-const post = require('../user_model/blogPosts');
-const { pageViews, getUsername, updateUsername, destroySession, scriptSomething, clickjacking, logginCheck, login, form, registerUser, loginUser, homePage, } = require('../User_Auth_Controller/AuthController');
+const Post = require('../user_model/blogPosts');
+const { pageViews, getUsername, updateUsername, destroySession, scriptSomething, clickjacking, logginCheck, login, form, registerUser, loginUser, homePage, loginPage, } = require('../User_Auth_Controller/AuthController');
 
 
 const router = express.Router();
 
 
 
-router.get('/', homePage);
+router.get('/admin', loginPage);
 
 router.get('/views', pageViews);
 

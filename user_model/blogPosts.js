@@ -6,12 +6,12 @@ const postSchema = mongoose.Schema(
         title: {
             type: String,
             required: true,
-            unique: true
+
         },
         author: {
             type: String,
             required: true,
-            unique: true
+
         },
         body: {
             type: String,
@@ -31,5 +31,5 @@ const postSchema = mongoose.Schema(
     }
 )
 
-const post = mongoose.model('post', postSchema);
-module.exports = post;
+const Post = mongoose.model('Post', postSchema);
+module.exports = Post;

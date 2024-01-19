@@ -2,13 +2,31 @@
     <h2 class="heading">
         Latest Posts
     </h2>
-    <ul class="article_ul">
-        <li>
-            <span class="post_title">
-                Post Title
-            </span>
-        </li>
-    </ul>
+    <% posts.forEach(post=> { %>
+        <ul class="article_ul">
+            <li>
+                <a href="/posts/<%= post._id %>">
+                    <span class="post_title">
+                        <%= post.title %>
+                    </span>
+                </a>
 
-    <a href="#" class="pagination">&lt; View Older Posts</a>
+                <br>
+                <span class="author">
+                    Posted by: <%= post.author %>
+                </span>
+                &centerdot;
+                <span class="date">
+                    Date: <%= post.createdAt.toDateString() %>
+                </span>
+
+            </li>
+        </ul>
+        <% }); %>
+
+            <% if (nextPage !==null) { %>
+                <a href="/posts/home/?page=<%= nextPage %>" class="pagination">&lt; View Older Posts</a>
+
+
+                <% } %>
 </section>
