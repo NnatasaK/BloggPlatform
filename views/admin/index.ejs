@@ -1,24 +1,30 @@
 <h2>Sign In</h2>
 
-<form action="/admin" method="post">
-    <label for="username"><b>Username</b></label>
-    <input type="text" name="username" placeholder="Enter Username" />
+<div class="form">
 
-    <label for="password"><b>Password</b></label>
-    <input type="password" name="password" placeholder="Enter Password" />
+    <form action="/admin" method="post">
+        <label for="username"><b>Username</b></label>
+        <input type="text" name="username" placeholder="Enter Username" />
 
-    <input type="submit" value="login" class="loginBtn">
-</form>
-<a href="/protected">Navigate to protected page</a>
+        <label for="password"><b>Password</b></label>
+        <input type="password" name="password" placeholder="Enter Password" />
+
+        <input type="submit" value="Login" class="btn">
+    </form>
+
+</div>
+
 
 <h2>Sign Up</h2>
 
-<form action="/register" method="post">
-    <label for="username"><b>Username</b></label>
-    <input type="text" name="username" placeholder="Enter Username" />
+<div class="form">
+    <form action="/register" method="post">
+        <label for="username"><b>Username</b></label>
+        <input type="text" name="username" placeholder="Enter Username" />
 
-    <label for="password"><b>Password</b></label>
-    <input type="password" name="password" placeholder="Enter Password" />
+        <label for="password"><b>Password</b></label>
+        <input type="password" name="password" placeholder="Enter Password" />
 
-    <input type="submit" value="register" class="loginBtn">
-</form>
+        <input type="submit" value="Register" class="btn">
+    </form>
+</div>
