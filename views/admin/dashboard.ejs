@@ -1,0 +1,50 @@
+<span class="admin-name">
+    <% if (user && user.username) { %>
+        Logged in as <%= user.username %>
+            <% } else { %>
+                Error: Not logged in
+                <% } %>
+</span>
+<div class="admin_title">
+    <h2>Blogg Posts</h2>
+    <a href="/add-post"> + Create new post</a>
+</div>
+
+<ul class="admin-post">
+    <% posts.forEach(post=> { %>
+        <li>
+            <a href="/posts/<%= post._id %>">
+                <span class="post_title">
+                    <%= post.title %>
+                </span>
+            </a>
+
+            <br>
+            <span class="author">
+                Posted by: <%= post.author %>
+            </span>
+            &centerdot;
+            <span class="date">
+                Date: <%= post.createdAt.toDateString() %>
+            </span>
+
+            <div class="post_controls">
+                <a href="/edit-post/<%= post._id %>" class="button">
+                    <button> Edit </button> </a>
+
+                <form action="/delete-post/<%= post._id %>?_method=DELETE" method="POST">
+                    <input type="submit" value="Delete" class="button" />
+                </form>
+            </div>
+
+        </li>
+        <% }) %>
+</ul>
+
+
+
+<% if (nextPage !==null) { %>
+    <a href="/dashboard/?page=<%= nextPage %>" class="pagination">&lt; View Older Posts</a>
+
+
+    <% } %>

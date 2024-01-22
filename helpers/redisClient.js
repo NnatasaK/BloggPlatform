@@ -1,8 +1,7 @@
-const redis = require('redis')
-const { createClient } = require('redis');
+const redis = require('redis');
 const session = require('express-session');
 const RedisStore = require('connect-redis').default;
-const REDIS_PORT = process.env.REDIS_PORT;
+const REDIS_PORT = process.env.REDIS_PORT || 6379;
 
 const redisClient = redis.createClient({
     host: 'localhost',

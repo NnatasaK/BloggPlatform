@@ -2,22 +2,25 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const connect = require('connect-redis');
+/* const MongoStore = require('connect-mongo'); */
+const session = require('express-session');
+const connectRedis = require('connect-redis');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
-const Post = require('./user_model/blogPosts');
 const userRoute = require('./Routes/authRoutes');
 const postRoute = require('./Routes/postRoutes');
 const errorMiddleware = require('./error_middleware/errorMiddleware');
-const session = require('express-session');
+
 const { default: helmet } = require('helmet');
 const { redisStore, redisClient } = require('./helpers/redisClient');
 const ejsLayout = require('express-ejs-layouts');
+const methodOverride = require('method-override');
 
 
 const MONGO_URL = process.env.MONGO_URL
 const PORT = process.env.PORT || 3000
 const DBname = process.env.DBname
+const SECRET = process.env.SECRET
 
 const app = express();
 
@@ -28,10 +31,17 @@ app.use(helmet());
 
 
 app.use(session({
-  secret: 'secret-key',
+  name: process.env.SESSION_NAME,
+  secret: SECRET,
   resave: false,
   saveUninitialized: false,
-  store: redisStore
+  store: redisStore,
+  cookie: { maxAge: 3600000, httpOnly: true }
+  // Date.now() - 30 * 24 * 60 * 60 * 1000
+  // try MongoStore store later for practice
+  /*  MongoStore.create({
+     MONGO_URL
+   }) */
 }));
 
 
@@ -44,6 +54,7 @@ app.set("view engine", "ejs");
 app.use(errorMiddleware);
 app.use(express.static("public"));
 app.use(ejsLayout);
+app.use(methodOverride('_method'))
 app.use('/', userRoute);
 app.use('/posts', postRoute);
 
