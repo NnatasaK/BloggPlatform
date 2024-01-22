@@ -7,8 +7,8 @@ const { createPost, updatePost, updatePosts, deletePost, deletePosts, getPosts, 
 const router = express.Router();
 
 
+// All the routes are used for Postman testing and for reference
 
-/* router.get('/', homePage); */
 router.get('/home', renderHome);
 router.get('/', getPosts);
 router.get('/:id', getPostById);

@@ -32,6 +32,10 @@ router.delete('/delete-post/:id', authMiddleware, deletePost);
 
 router.get('/logout', userLogout);
 
+
+
+// Routes from here are for Postman testing or just for reference
+
 router.post('/login', login);
 
 router.get('/views', pageViews);

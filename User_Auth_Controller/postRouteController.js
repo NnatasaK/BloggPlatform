@@ -25,12 +25,11 @@ const renderHome = asyncHandler(async (req, res) => {
         const nextPage = parseInt(page) + 1;
         const hasNextPage = nextPage <= Math.ceil(count / perPage);
         if (!posts || posts.length === 0) {
-            // Handle case where there are no posts
             res.status(404).json({ message: 'No posts found' });
             return;
         }
 
-        // Save posts to Redis (assuming each post has a unique identifier)
+        // Save posts to Redis 
         const redisKey = 'posts';
         posts.forEach(post => {
             const redisPostKey = `post:${post._id}`;
@@ -38,7 +37,7 @@ const renderHome = asyncHandler(async (req, res) => {
         });
 
 
-        // Render the index view with posts
+
         res.render('index', 'dashboard', {
             posts,
             current: page,
@@ -51,7 +50,7 @@ const renderHome = asyncHandler(async (req, res) => {
     }
 })
 
-// Get specific post
+// Get specific post by ID
 
 const getPostById = async (req, res) => {
 
@@ -89,6 +88,7 @@ const getPost = async (req, res) => {
     }
 
 }
+
 // Post route for creating new post
 
 const createPost = async (req, res) => {
@@ -170,17 +170,7 @@ const updatePost = async (req, res) => {
 }
 
 
-/* const deletePost = async (req, res) => {
-    try {
-        const { id } = req.params;
-        await Post.findByIdAndDelete({ _id: id });
-        res.redirect('/dashboard');
-    } catch (error) {
-        res.status(500);
-        throw new Error(error.message);
-    }
-}
- */
+
 const deletePost = async (req, res) => {
     try {
         const id = req.params.id;
@@ -220,7 +210,7 @@ const updatePosts = async (req, res) => {
     }
 }
 
-// // Postman test - Delete multiple posts
+// Postman test - Delete multiple posts
 
 const deletePosts = async (req, res) => {
     try {
@@ -248,23 +238,6 @@ const getPosts = async (req, res) => {
 
     }
 }
-
-// Postman test - Delete Post
-/* 
-const deletePost = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const post = await Post.findByIdAndDelete(id, req.body);
-        if (!post) {
-            return res.status(404).json({ message: `Cannot find any post with ID ${id}` })
-        }
-        res.status(200).json(post)
-    } catch (error) {
-        res.status(500);
-        throw new Error(error.message);
-    }
-}
- */
 
 
 module.exports = {
@@ -345,3 +318,32 @@ module.exports = {
 
     }
 } */
+
+// Postman test - Delete Post
+/* 
+const deletePost = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const post = await Post.findByIdAndDelete(id, req.body);
+        if (!post) {
+            return res.status(404).json({ message: `Cannot find any post with ID ${id}` })
+        }
+        res.status(200).json(post)
+    } catch (error) {
+        res.status(500);
+        throw new Error(error.message);
+    }
+}
+ */
+
+/* const deletePost = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await Post.findByIdAndDelete({ _id: id });
+        res.redirect('/dashboard');
+    } catch (error) {
+        res.status(500);
+        throw new Error(error.message);
+    }
+}
+ */

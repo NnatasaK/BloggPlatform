@@ -88,6 +88,14 @@ process.on('SIGINT', async () => {
 
 
 
+
+// old code for reference
+
+// Note:  Learn better the order of things
+
+// Note:  Save MongoDB connection into a separate file
+
+
 /*
 
 app.get("/form", (_req, res) =>
