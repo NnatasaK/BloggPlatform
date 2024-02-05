@@ -2,6 +2,7 @@ const express = require('express');
 const Post = require('../user_model/blogPosts');
 const User = require('../user_model/users');
 const { createPost, updatePost, updatePosts, deletePost, deletePosts, getPosts, renderHome, getPostById } = require('../User_Auth_Controller/postRouteController');
+const { renderComments } = require('../User_Auth_Controller/commentRouteController');
 
 
 const router = express.Router();

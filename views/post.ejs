@@ -4,3 +4,56 @@
 <article class="article">
     <%= posts.body %>
 </article>
+
+<br>
+
+<br>
+
+
+<div class="admin-post-controls">
+    <a href="/edit-post/<%= posts._id %>">
+        <button class="btn"> Edit </button> </a>
+
+    <form action="/delete-post/<%= posts._id %>?_method=DELETE" method="POST">
+        <input type="submit" value="Delete" class="btn-delete" />
+    </form>
+
+</div>
+
+<article class="article">
+    <form action="/comments/<%= posts._id %>" method="POST">
+        <input type="hidden" name="postId" value="<%= posts._id %>">
+        <label for="content">Comment</label>
+        <textarea name="content" id="content" rows="4" cols="50" required></textarea>
+        <button type="submit">Submit Comment</button>
+    </form>
+</article>
+
+<ul class="admin-posts">
+    <% comments.forEach(comment=> { %>
+        <li>
+            <a href="/comments/<%= comment._id %>">
+                <span class="post_title">
+                    <%= comment.postId %>
+                </span>
+            </a>
+            <br>
+            <span class="author">
+                Posted by: <%= comment.userId %>
+            </span>
+            &centerdot;
+            <span class="date">
+                Date: <%= comment.createdAt.toDateString() %>
+            </span>
+            <article class="article">
+                <%= comment.content %>
+            </article>
+        </li>
+        <% }); %>
+</ul>
+
+<% if (nextPage !==null) { %>
+    <a href="/posts/<%= posts._id %>/?page=<%= nextPage %>" class="pagination">&lt; View More Comments</a>
+
+
+    <% } %>

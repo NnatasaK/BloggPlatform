@@ -9,6 +9,7 @@ const cookieParser = require('cookie-parser');
 require('dotenv').config();
 const userRoute = require('./Routes/authRoutes');
 const postRoute = require('./Routes/postRoutes');
+const commentRoute = require('./Routes/commentRoutes');
 const errorMiddleware = require('./error_middleware/errorMiddleware');
 
 const { default: helmet } = require('helmet');
@@ -57,6 +58,10 @@ app.use(ejsLayout);
 app.use(methodOverride('_method'))
 app.use('/', userRoute);
 app.use('/posts', postRoute);
+app.use('/comments', commentRoute);
+
+
+/* app.use('/posts/:id/comments', commentRoute); */
 
 
 

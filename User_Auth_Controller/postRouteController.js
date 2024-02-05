@@ -1,6 +1,7 @@
 const { Error } = require('mongoose');
 const Post = require('../user_model/blogPosts');
 const User = require('../user_model/users');
+const Comment = require('../user_model/comments');
 const asyncHandler = require('express-async-handler');
 const { redisStore, redisClient } = require('../helpers/redisClient');
 const path = require("path");
@@ -57,7 +58,43 @@ const getPostById = async (req, res) => {
     try {
         const id = req.params.id;
         const posts = await Post.findById({ _id: id });
-        res.render('post', { posts });
+        /* const comments = await Comment.find({ postId: posts._id }); */
+
+        /*   const newComment = ({
+              content: req.body.content
+          })
+  
+          await Comment.create(newComment); */
+        let perPage = 5;
+        let page = req.query.page || 1;
+
+        const comments = await Comment.aggregate([{ $sort: { createdAt: -1 } }])
+            .skip(perPage * page - perPage)
+            .limit(perPage)
+            .exec();
+
+        const count = await Comment.countDocuments();
+        const nextPage = parseInt(page) + 1;
+        const hasNextPage = nextPage <= Math.ceil(count / perPage);
+        /*   if (!comments || comments.length === 0) {
+              res.status(404).json({ message: 'No comments found' });
+              return;
+          } */
+
+
+
+        res.render('post',
+            {
+                posts,
+                comments,
+                current: page,
+                nextPage: hasNextPage ? nextPage : null
+            });
+
+
+
+
+
 
 
     } catch (error) {
