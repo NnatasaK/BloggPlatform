@@ -4,6 +4,7 @@
     --black: #1c1c1c;
     --gray: #7E7E7E;
     --gray-light: #E4E4E4;
+    --font-size-xs: 0.85rem;
     --font-size-base: 1rem;
     --font-size-md: clamp(1.25rem, 0.61vw + 1.1rem, 1.58rem);
     --font-size-lg: clamp(1.56rem, 1vw + 1.31rem, 2.11rem);
@@ -39,6 +40,7 @@ input[type="text"],
 input[type="email"],
 input[type="password"],
 input[type="search"],
+input[type="hidden"],
 select,
 textarea {
     font-family: 'Poppins', sans-serif;
@@ -62,10 +64,34 @@ textarea {
     cursor: pointer;
 }
 
+.btn-comment {
+    background-color: var(--black);
+    font-size: var(--font-size-xs);
+    border: none;
+    border-radius: 3px;
+    color: rgb(243, 243, 243);
+    padding: 8px 20px;
+    text-decoration: none;
+    margin: 4px 2px;
+    cursor: pointer;
+}
+
 .btn-delete {
     background-color: var(--black);
     color: rgb(243, 243, 243);
     font-size: var(--font-size-base);
+    border: none;
+    border-radius: 3px;
+    padding: 8px 10px;
+    text-decoration: none;
+    margin: 4px 2px;
+    cursor: pointer;
+}
+
+.btn-delete-comment {
+    background-color: var(--black);
+    color: rgb(243, 243, 243);
+    font-size: var(--font-size-xs);
     border: none;
     border-radius: 3px;
     padding: 8px 10px;
@@ -85,7 +111,31 @@ textarea {
     padding: 20px 0;
 }
 
+.comment-content {
+    border: 1px solid var(--black);
+    background-color: rgba(245, 245, 245, 0.902);
+    border-radius: 3px;
+    width: 50%;
+    padding: 20px;
+    margin: 10px;
+}
 
+.comment-text {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    display: block;
+    box-sizing: border-box;
+    padding: 0.7rem 0.75rem;
+    margin-bottom: 1rem;
+    background-color: rgba(245, 245, 245, 0.902);
+    border-radius: 3px;
+    width: 60%;
+}
+
+.comment-article {
+
+    margin: 25px;
+}
 
 /* Main Header */
 .header {

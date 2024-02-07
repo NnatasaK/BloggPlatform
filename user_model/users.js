@@ -14,7 +14,12 @@ const userSchema = mongoose.Schema(
             required: true,
 
 
-        }
+        },
+        comments: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Comment'
+            }],
     }
 )
 

@@ -28,7 +28,7 @@ const loginPage = async (req, res) => {
 };
 
 // Admin - Check Login
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
     const token = req.cookies.token;
 
     if (!token) {
@@ -38,7 +38,9 @@ const authMiddleware = (req, res, next) => {
     try {
         const decoded = jwt.verify(token, jwtSecret);
         req.userId = decoded.userId;
-        const user = User.findById(req.userId);
+
+        const user = await User.findById(req.userId);
+
         if (!user) {
             return res.status(401).send('User not found.');
         }
@@ -47,10 +49,17 @@ const authMiddleware = (req, res, next) => {
 
         next();
     } catch (error) {
-        res.status(500);
-        throw new Error(error.message);
+
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).send('Token has expired. Please log in again.');
+        } else if (error.name === 'JsonWebTokenError') {
+            return res.status(401).send('Invalid token. Please log in again.');
+        } else {
+            return res.status(500).send(error.message);
+        }
     }
-}
+};
+
 const loginCheck = async (req, res) => {
     try {
         if (req.session.isLoggedIn) {
@@ -104,25 +113,29 @@ const loginUser = async (req, res) => {
     try {
         const { username, password } = req.body;
 
+        // Check if userId is already set (e.g., by authentication middleware)
+        if (!req.userId) {
+            // for MongoDB also (extra code for learning purpose and reusability)
+            const user = await User.findOne({ username });
 
+            if (!user) {
+                return res.status(401).json('Invalid credentials');
+            }
 
-        // for MongoDB also (extra code for learning purpose and reusability)
+            const validPassword = await bcrypt.compare(password, user.password);
 
-        const user = await User.findOne({ username });
-        if (!user) {
-            return res.status(401).json('Invalid credentials');
+            if (!validPassword) {
+                return res.status(401).json('Invalid credentials');
+            }
+
+            // Set userId in the request
+            req.userId = user._id;
         }
-        const validPassword = await bcrypt.compare(password, user.password);
-        if (!validPassword) {
-            return res.status(401).json('Invalid credentials');
-        }
 
-        const token = jwt.sign({ userId: user._id }, jwtSecret);
+        const token = jwt.sign({ userId: req.userId }, jwtSecret);
         res.cookie('token', token, { httpOnly: true });
-        req.session.userId = user._id;
+        req.session.userId = req.userId;
         res.redirect("/dashboard");
-
-
     } catch (error) {
         res.status(500);
         throw new Error(error.message);
@@ -141,6 +154,7 @@ const dashboard = async (req, res) => {
     try {
         const userId = req.userId;
 
+
         if (!userId) {
             // Redirect to login if userId is not set
             res.redirect('/admin');
@@ -148,7 +162,7 @@ const dashboard = async (req, res) => {
         }
 
         const user = await User.findById(userId);
-
+        req.userId = user._id;
         if (!user) {
             // Redirect to login if user is not found
             res.redirect('/admin');

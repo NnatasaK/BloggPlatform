@@ -5,7 +5,7 @@ const Comment = require('../user_model/comments');
 const asyncHandler = require('express-async-handler');
 const { redisStore, redisClient } = require('../helpers/redisClient');
 const path = require("path");
-
+const { getPostById } = require('../User_Auth_Controller/postRouteController');
 
 const adminPage = '../views/layouts/admin';
 
@@ -13,47 +13,60 @@ const adminPage = '../views/layouts/admin';
 
 const renderComments = asyncHandler(async (req, res) => {
     try {
+
         const id = req.params.id;
-        const posts = await Post.findById({ _id: id });
+        /*  const posts = await Post.findById({ _id: id }); */
+        const userId = req.userId;
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+
 
         let perPage = 5;
         let page = req.query.page || 1;
 
-        const comments = await Comment.aggregate([{ $sort: { createdAt: -1 } }])
+        // Fetch comments associated with the specific post
+        const comments = await Comment.find({ postId: id })
+            .sort({ createdAt: -1 })
             .skip(perPage * page - perPage)
             .limit(perPage)
+            .populate('userId')
             .exec();
 
-        const count = await Comment.countDocuments();
+        const count = await Comment.countDocuments({ postId: id });
         const nextPage = parseInt(page) + 1;
         const hasNextPage = nextPage <= Math.ceil(count / perPage);
-        /*  if (!comments || comments.length === 0) {
-             res.status(404).json({ message: 'No comments found' });
-             return;
-         } */
 
-        // Save comments to Redis 
+        // Save comments to Redis
         const redisKey = `comments:${id}`;
         redisClient.set(redisKey, JSON.stringify(comments));
 
         // Create a new comment
         const newComment = {
-            content: req.body.content
+            content: req.body.content,
+            postId: id,
+            userId: userId,
+            author: user.username
         };
 
         await Comment.create(newComment);
 
-        res.render('post', {
-            posts,
-            comments,
-            current: page,
-            nextPage: hasNextPage ? nextPage : null
-        });
+        getPostById(req, res);
+        /*  res.render('post', {
+             user,
+             posts,
+             comments,
+             current: page,
+             nextPage: hasNextPage ? nextPage : null
+         }); */
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
-
 
 
 // Get route for Add Comment
@@ -124,30 +137,65 @@ const addComment = async (req, res) => {
 
 // Delete route for Delete Comment
 
+
+/* const deleteComment = async (req, res) => {
+    try {
+        const commentId = req.params.id;
+        const userId = req.userId;
+
+        const comment = await Comment.findOneAndDelete({
+            _id: commentId,
+            userId: userId,
+        });
+
+        if (!comment) {
+            res.status(404).send('Comment not found.');
+            return;
+        }
+
+        res.status(200).send({ message: 'Comment deleted successfully.' });
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+};
+ */
+
+
+
+
+
+
 const deleteComment = async (req, res) => {
+
     try {
         const id = req.params.id;
-        const post = await Post.findById(id);
+        const comment = await Comment.findById(id);
+
+        if (!comment) {
+            res.status(404).send('Comment not found.');
+            return;
+        }
+
         const user = await User.findById(req.userId);
         req.username = user.username;
 
-        if (!post) {
-            res.status(404).send('Post not found.');
+        if (comment.author !== req.username) {
+            res.status(403).send('You are not authorized to delete this comment.');
             return;
         }
 
-        if (post.author !== req.username) {
-            res.status(403).send('You are not authorized to delete this post.');
-            return;
-        }
+        await Comment.findByIdAndDelete(id);
 
-        await Post.findByIdAndDelete(id);
-        res.redirect('/dashboard');
+        res.redirect(`/posts/${comment.postId}`);
+
     } catch (error) {
         res.status(500);
         throw new Error(error.message);
     }
 }
+
+
+
 
 
 

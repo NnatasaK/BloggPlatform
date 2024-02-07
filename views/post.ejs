@@ -10,7 +10,7 @@
 <br>
 
 
-<div class="admin-post-controls">
+<!-- <div class="admin-post-controls">
     <a href="/edit-post/<%= posts._id %>">
         <button class="btn"> Edit </button> </a>
 
@@ -18,39 +18,49 @@
         <input type="submit" value="Delete" class="btn-delete" />
     </form>
 
-</div>
+</div> -->
 
-<article class="article">
+<article class="comment-article">
     <form action="/comments/<%= posts._id %>" method="POST">
         <input type="hidden" name="postId" value="<%= posts._id %>">
-        <label for="content">Comment</label>
-        <textarea name="content" id="content" rows="4" cols="50" required></textarea>
-        <button type="submit">Submit Comment</button>
+        <label for="content">Leave a comment:</label>
+        <textarea class="comment-text" name="content" id="content" rows="4" cols="50" required></textarea>
+        <button type="submit" class="btn">Submit Comment</button>
     </form>
 </article>
 
-<ul class="admin-posts">
+Older comments:
+
+<ul>
     <% comments.forEach(comment=> { %>
         <li>
-            <a href="/comments/<%= comment._id %>">
-                <span class="post_title">
-                    <%= comment.postId %>
-                </span>
-            </a>
-            <br>
             <span class="author">
-                Posted by: <%= comment.userId %>
+                <%= comment.author %>
             </span>
             &centerdot;
             <span class="date">
                 Date: <%= comment.createdAt.toDateString() %>
             </span>
-            <article class="article">
+            <article class="comment-content">
                 <%= comment.content %>
             </article>
         </li>
+
+        <div class="admin-post-controls">
+            <a href="/edit-comment/<%= comment._id %>">
+                <button class="btn-comment"> Edit </button> </a>
+
+            <form action="/posts/delete-comment/<%= comment._id %>?_method=DELETE" method="POST">
+                <input type="submit" value="Delete" class="btn-delete-comment" />
+            </form>
+
+
+        </div>
+
         <% }); %>
 </ul>
+
+
 
 <% if (nextPage !==null) { %>
     <a href="/posts/<%= posts._id %>/?page=<%= nextPage %>" class="pagination">&lt; View More Comments</a>

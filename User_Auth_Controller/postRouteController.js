@@ -54,56 +54,50 @@ const renderHome = asyncHandler(async (req, res) => {
 // Get specific post by ID
 
 const getPostById = async (req, res) => {
-
     try {
         const id = req.params.id;
         const posts = await Post.findById({ _id: id });
-        /* const comments = await Comment.find({ postId: posts._id }); */
+        const userId = req.userId;
 
-        /*   const newComment = ({
-              content: req.body.content
-          })
-  
-          await Comment.create(newComment); */
+        const user = await User.findById(userId);
+
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+
+
+        if (!posts) {
+            res.status(404).json({ message: 'Post not found' });
+            return;
+        }
+
         let perPage = 5;
         let page = req.query.page || 1;
 
-        const comments = await Comment.aggregate([{ $sort: { createdAt: -1 } }])
+        const comments = await Comment.find({ postId: posts._id })
+            .sort({ createdAt: -1 })
             .skip(perPage * page - perPage)
             .limit(perPage)
+            .populate('userId')
             .exec();
 
-        const count = await Comment.countDocuments();
+        const count = await Comment.countDocuments({ postId: posts._id });
         const nextPage = parseInt(page) + 1;
         const hasNextPage = nextPage <= Math.ceil(count / perPage);
-        /*   if (!comments || comments.length === 0) {
-              res.status(404).json({ message: 'No comments found' });
-              return;
-          } */
 
-
-
-        res.render('post',
-            {
-                posts,
-                comments,
-                current: page,
-                nextPage: hasNextPage ? nextPage : null
-            });
-
-
-
-
-
-
+        res.render('post', {
+            user,
+            posts,
+            comments,
+            current: page,
+            nextPage: hasNextPage ? nextPage : null,
+        });
 
     } catch (error) {
-        res.status(500);
-        throw new Error(error.message);
-
+        res.status(500).send(error.message);
     }
-}
-
+};
 
 
 
