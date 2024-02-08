@@ -1,14 +1,16 @@
 const express = require('express');
 const Post = require('../user_model/blogPosts');
 const User = require('../user_model/users');
-const { pageViews, getUsername, updateUsername, destroySession, scriptSomething, clickjacking, loginCheck, login, form, registerUser, loginUser, loginPage, dashboard, authMiddleware, userLogout, } = require('../User_Auth_Controller/AuthController');
+const { pageViews, getUsername, updateUsername, destroySession, scriptSomething, clickjacking, loginCheck, login, form, registerUser, loginUser, loginPage, dashboard, authMiddleware, userLogout, loginGitHub, oauthCallback, } = require('../User_Auth_Controller/AuthController');
 const { createPost, getPost, updatePost, getPostById, getEditPost, deletePost } = require('../User_Auth_Controller/postRouteController');
 
 
 
 const router = express.Router();
 
+router.get('/GitHub', loginGitHub);
 
+router.get('/oauth-callback', oauthCallback);
 
 router.get('/admin', loginPage);
 

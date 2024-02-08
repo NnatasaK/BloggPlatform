@@ -52,6 +52,26 @@ textarea {
     margin-bottom: 1rem;
 }
 
+.icon {
+    width: 15%;
+}
+
+.btn-GitHub {
+
+    background-color: rgb(237, 245, 255);
+    font-size: var(--font-size-base);
+    font-weight: 200;
+    border: 0.5px solid var(--black);
+    /* border: 0.5px solid rgb(196, 196, 217); */
+    box-shadow: 0.5px 0.5px 1px #7e7e7ed7;
+    border-radius: 3px;
+    color: var(--black);
+    padding: 10px 0px;
+    text-decoration: none;
+    margin: 20px 0px 50px 0px;
+    cursor: pointer;
+}
+
 .btn {
     background-color: var(--black);
     font-size: var(--font-size-base);
@@ -149,6 +169,8 @@ textarea {
 
 .article {
     white-space: pre-wrap;
+    padding-bottom: 30px;
+    border-bottom: 2px solid rgba(161, 152, 152, 0.477)
 }
 
 

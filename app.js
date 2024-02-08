@@ -7,6 +7,7 @@ const session = require('express-session');
 const connectRedis = require('connect-redis');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
+const path = require("path");
 const userRoute = require('./Routes/authRoutes');
 const postRoute = require('./Routes/postRoutes');
 const commentRoute = require('./Routes/commentRoutes');
@@ -34,15 +35,11 @@ app.use(helmet());
 app.use(session({
   name: process.env.SESSION_NAME,
   secret: SECRET,
-  resave: false,
-  saveUninitialized: false,
+  resave: true,
+  saveUninitialized: true,
   store: redisStore,
   cookie: { maxAge: 3600000, httpOnly: true }
-  // Date.now() - 30 * 24 * 60 * 60 * 1000
-  // try MongoStore store later for practice
-  /*  MongoStore.create({
-     MONGO_URL
-   }) */
+
 }));
 
 

@@ -27,53 +27,6 @@ const loginPage = async (req, res) => {
     }
 };
 
-// Admin - Check Login
-const authMiddleware = async (req, res, next) => {
-    const token = req.cookies.token;
-
-    if (!token) {
-        return res.status(401).send('Cannot access this page. Please login first!');
-    }
-
-    try {
-        const decoded = jwt.verify(token, jwtSecret);
-        req.userId = decoded.userId;
-
-        const user = await User.findById(req.userId);
-
-        if (!user) {
-            return res.status(401).send('User not found.');
-        }
-
-        req.username = user.username;
-
-        next();
-    } catch (error) {
-
-        if (error.name === 'TokenExpiredError') {
-            return res.status(401).send('Token has expired. Please log in again.');
-        } else if (error.name === 'JsonWebTokenError') {
-            return res.status(401).send('Invalid token. Please log in again.');
-        } else {
-            return res.status(500).send(error.message);
-        }
-    }
-};
-
-const loginCheck = async (req, res) => {
-    try {
-        if (req.session.isLoggedIn) {
-            next();
-        } else {
-            res.status(401).send("Not permitted.");
-        }
-
-    } catch (error) {
-        res.status(500);
-        throw new Error(error.message);
-    }
-};
-
 
 // Admin - register
 
@@ -109,11 +62,17 @@ const registerUser = async (req, res) => {
 // Admin - login protected ( bcrypt )
 // Only checking in Redis database, not MongoDB
 
-const loginUser = async (req, res) => {
+/* const loginUser = async (req, res) => {
     try {
+        // Check if the user is authenticated with GitHub
+        if (req.session.userId) {
+            res.redirect("/dashboard");
+            return;
+        }
+
         const { username, password } = req.body;
 
-        // Check if userId is already set (e.g., by authentication middleware)
+        // Check if userId is already set
         if (!req.userId) {
             // for MongoDB also (extra code for learning purpose and reusability)
             const user = await User.findOne({ username });
@@ -132,6 +91,9 @@ const loginUser = async (req, res) => {
             req.userId = user._id;
         }
 
+        // Set isLoggedIn in the session
+        req.session.isLoggedIn = true;
+
         const token = jwt.sign({ userId: req.userId }, jwtSecret);
         res.cookie('token', token, { httpOnly: true });
         req.session.userId = req.userId;
@@ -142,9 +104,267 @@ const loginUser = async (req, res) => {
     }
 };
 
+ */
+const loginUser = async (req, res) => {
+    try {
+        // Check if the user is authenticated with GitHub
+        if (req.session.userId) {
+            res.redirect("/dashboard");
+            return;
+        }
+
+        const { username, password } = req.body;
+
+        // Check if userId is already set
+        if (!req.userId) {
+            const user = await User.findOne({ username });
+
+            if (!user) {
+                return res.status(401).json('Invalid credentials');
+            }
+
+            const validPassword = await bcrypt.compare(password, user.password);
+
+            if (!validPassword) {
+                return res.status(401).json('Invalid credentials');
+            }
+
+            // Set userId in the request
+            req.userId = user._id;
+        }
+
+        // Set isLoggedIn in the session
+        req.session.isLoggedIn = true;
+
+        const token = jwt.sign({ userId: req.userId }, jwtSecret);
+        res.cookie('token', token, { httpOnly: true });
+        req.session.userId = req.userId;
+        res.redirect("/dashboard");
+
+    } catch (error) {
+        res.status(500);
+        throw new Error(error.message);
+    }
+};
+
+
+// Get Login trough GitHub
+
+
+const loginGitHub = async (req, res) => {
+    try {
+        const authUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.CLIENT_ID}`;
+        res.redirect(authUrl);
+    } catch (error) {
+        res.status(500);
+        throw new Error(error.message);
+    }
+};
+
+const getUserInfoFromGitHub = async (access_token) => {
+    const response = await fetch("https://api.github.com/user", {
+        headers: {
+            Authorization: `Bearer ${access_token}`,
+        },
+    });
+    return await response.json();
+};
+const oauthCallback = async (req, res) => {
+    try {
+        const code = req.query.code;
+
+        const response = await fetch("https://github.com/login/oauth/access_token", {
+            method: "POST",
+            body: new URLSearchParams({
+                client_id: process.env.CLIENT_ID,
+                client_secret: process.env.CLIENT_SECRET,
+                code: code,
+            }),
+            headers: {
+                Accept: "application/json",
+            },
+        });
+
+        const jsonResponse = await response.json();
+
+        // Use the GitHub user information
+        const userInfo = await getUserInfoFromGitHub(jsonResponse.access_token);
+
+        // Set session variables correctly
+        req.session.userId = userInfo.id.toString();  // Convert to string to avoid ObjectId casting issues
+        req.session.username = userInfo.login;
+
+        // Check if the user already exists in your database based on GitHub user ID
+        let user = await User.findOne({ githubId: req.session.userId });
+
+        // If the user doesn't exist, create a new user
+        if (!user) {
+            user = await User.create({ githubId: req.session.userId, username: req.session.username });
+        }
+
+        // Continue with authentication
+        const token = jwt.sign({ userId: user._id }, jwtSecret);
+        res.cookie('token', token, { httpOnly: true });
+
+        res.redirect("/dashboard");
+    } catch (error) {
+        console.error('Error in oauthCallback:', error);
+        res.status(500).send(error.message);
+    }
+};
+
+
+
+/* const getUserInfoFromGitHub = async (access_token) => {
+    const response = await fetch("https://api.github.com/user", {
+        headers: {
+            Authorization: `Bearer ${access_token}`,
+        },
+    });
+    return await response.json();
+};
+
+const oauthCallback = async (req, res) => {
+    try {
+        const code = req.query.code;
+
+        const response = await fetch("https://github.com/login/oauth/access_token", {
+            method: "POST",
+            body: new URLSearchParams({
+                client_id: process.env.CLIENT_ID,
+                client_secret: process.env.CLIENT_SECRET,
+                code: code,
+            }),
+            headers: {
+                Accept: "application/json",
+            },
+        });
+
+        const jsonResponse = await response.json();
+        req.session.username = await getUserInfoFromGitHub(jsonResponse.access_token);
+        req.session.userId = getUserInfoFromGitHub.id;
+        req.session.username = getUserInfoFromGitHub.login;
+        const token = jwt.sign({ userId: req.userId }, jwtSecret);
+        res.cookie('token', token, { httpOnly: true });
+
+        res.redirect("/dashboard");
+        //  res.send("Authentication successful!"); 
+    } catch (error) {
+        res.status(500);
+        throw new Error(error.message);
+    }
+};
+
+ */
+
+
 
 // Checking if user exists in Redis, otherwise check MongoDB (dont know how to do it, try later!)
 
+// Admin - Check Login
+
+/* const authMiddleware = async (req, res, next) => {
+    try {
+        console.log('Checking authentication...');
+
+        const token = req.cookies.token;
+
+        if (!token) {
+            console.log('No token found.');
+            return res.status(401).send('Cannot access this page. Please log in first!');
+        }
+
+        const decoded = jwt.verify(token, jwtSecret);
+        req.userId = decoded.userId;
+
+        // Check if the user exists in your database based on GitHub OAuth login
+        const user = await User.findById(req.userId);
+
+        if (!user) {
+            console.log('User not found in the database.');
+            return res.status(401).send('User not found. Please log in again.');
+        }
+
+        req.username = user.username;
+        console.log('Authentication successful.');
+        next();
+    } catch (error) {
+        console.error('Authentication error:', error);
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).send('Token has expired. Please log in again.');
+        } else if (error.name === 'JsonWebTokenError') {
+            return res.status(401).send('Invalid token. Please log in again.');
+        } else {
+            return res.status(500).send(error.message);
+        }
+    }
+};
+ */
+
+
+const authMiddleware = async (req, res, next) => {
+    try {
+        console.log('Checking authentication...');
+
+        const token = req.cookies.token;
+
+        if (token) {
+            // GitHub OAuth login
+            const decoded = jwt.verify(token, jwtSecret);
+            req.userId = decoded.userId;
+
+            // Check if the user exists in your database based on GitHub OAuth login
+            const user = await User.findById(req.userId);
+
+            if (!user) {
+                console.log('User not found in the database.');
+                return res.status(401).send('User not found. Please log in again.');
+            }
+
+            req.username = user.username;
+            console.log('GitHub Authentication successful.');
+            next();
+        } else if (req.session.isLoggedIn && req.userId) {
+            // Regular username/password login
+            const user = await User.findById(req.userId);
+
+            if (!user) {
+                console.log('User not found in the database.');
+                return res.status(401).send('User not found. Please log in again.');
+            }
+
+            req.username = user.username;
+            console.log('Regular Authentication successful.');
+            next();
+        } else {
+            console.log('No token or session found.');
+            return res.status(401).send('Cannot access this page. Please log in first!');
+        }
+    } catch (error) {
+        console.error('Authentication error:', error);
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).send('Token has expired. Please log in again.');
+        } else if (error.name === 'JsonWebTokenError') {
+            return res.status(401).send('Invalid token. Please log in again.');
+        } else {
+            return res.status(500).send(error.message);
+        }
+    }
+};
+
+const loginCheck = async (req, res) => {
+    try {
+        if (req.session.isLoggedIn) {
+            next();
+        } else {
+            res.status(401).send("Not permitted.");
+        }
+
+    } catch (error) {
+        res.status(500);
+        throw new Error(error.message);
+    }
+};
 
 
 // redirect to dashboard & pagination from postRouteController
@@ -216,15 +436,11 @@ const dashboard = async (req, res) => {
 
 const userLogout = async (req, res) => {
     try {
+        // Clear the token cookie
         res.clearCookie('token');
+        // Clear any other session-related data as needed
+        req.session.destroy();
         res.redirect('/admin');
-        //  res.send('You are logged out!');
-
-        /* setTimeout(() => {
-            res.end();
-            res.redirect('/admin');
-        }, 2000); */
-
 
     } catch (error) {
         res.status(500);
@@ -382,6 +598,8 @@ const clickjacking = async (req, res) => {
 
 module.exports = {
     loginPage,
+    loginGitHub,
+    oauthCallback,
     pageViews,
     getUsername,
     updateUsername,
