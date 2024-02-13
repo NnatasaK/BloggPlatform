@@ -24,6 +24,10 @@ const commentSchema = mongoose.Schema(
         htmlContent: {
             type: String, // Store HTML-formatted content
         },
+        likes: {
+            type: Number,
+            default: 0, // Default likes count is 0
+        },
     },
     {
         timestamps: true,

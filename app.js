@@ -1,5 +1,6 @@
 
 const express = require('express');
+const cors = require('cors');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 /* const MongoStore = require('connect-mongo'); */
@@ -8,10 +9,15 @@ const connectRedis = require('connect-redis');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
 const path = require("path");
+const { initializeSocket } = require('./User_Auth_Controller/socketController');
 const userRoute = require('./Routes/authRoutes');
 const postRoute = require('./Routes/postRoutes');
 const commentRoute = require('./Routes/commentRoutes');
 const errorMiddleware = require('./error_middleware/errorMiddleware');
+const { createServer } = require('node:http');
+const { Server } = require('socket.io');
+
+/* const { WebSocketServer, WebSocket } = require('ws'); */
 
 const { default: helmet } = require('helmet');
 const { redisStore, redisClient } = require('./helpers/redisClient');
@@ -25,6 +31,17 @@ const DBname = process.env.DBname
 const SECRET = process.env.SECRET
 
 const app = express();
+const server = createServer(app);
+
+app.use(cors());
+
+const io = initializeSocket(server);
+app.io = io;
+
+app.use((req, res, next) => {
+  res.setHeader('Content-Security-Policy', "script-src 'self' http://localhost:3000;"); // Add http://localhost:3000 to script-src
+  next();
+});
 
 
 app.use(cookieParser());
@@ -35,12 +52,15 @@ app.use(helmet());
 app.use(session({
   name: process.env.SESSION_NAME,
   secret: SECRET,
-  resave: true,
-  saveUninitialized: true,
+  resave: false,
+  saveUninitialized: false,
   store: redisStore,
   cookie: { maxAge: 3600000, httpOnly: true }
 
 }));
+
+
+app.use('/public', express.static(path.join(__dirname, 'public'), { 'Content-Type': 'application/javascript' }));
 
 
 
@@ -58,16 +78,13 @@ app.use('/posts', postRoute);
 app.use('/comments', commentRoute);
 
 
-/* app.use('/posts/:id/comments', commentRoute); */
-
-
 
 
 
 
 mongoose.connect(MONGO_URL, { dbName: DBname })
   .then(() => {
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`App running on port ${PORT}`)
     })
 

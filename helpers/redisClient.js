@@ -1,3 +1,5 @@
+
+
 const redis = require('redis');
 const session = require('express-session');
 const RedisStore = require('connect-redis').default;
@@ -18,18 +20,10 @@ redisClient.on('connect', (err) => {
 
 redisClient.connect();
 
-process.on('SIGINT', () => {
-    redisClient.disconnect();
-    process.exit(0);
-});
-
-
 
 const redisStore = new RedisStore({
     client: redisClient,
     prefix: "session:",
 });
-
-
 
 module.exports = { redisClient, redisStore };

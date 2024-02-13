@@ -25,11 +25,16 @@ const postSchema = mongoose.Schema(
             type: Date,
             default: Date.now
         },
+
         comments: [
             {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'Comment'
             }],
+        likes: {
+            type: Number,
+            default: 0, // Default likes count is 0
+        },
     },
     {
         timestamps: true

@@ -2,14 +2,15 @@ const { Error } = require('mongoose');
 const Post = require('../user_model/blogPosts');
 const User = require('../user_model/users');
 const Comment = require('../user_model/comments');
+const Like = require('../user_model/likes');
 const asyncHandler = require('express-async-handler');
 const { redisStore, redisClient } = require('../helpers/redisClient');
-const path = require("path");
+
 
 
 const adminPage = '../views/layouts/admin';
 
-
+//NOT IN USE (correct route is in the AuthController)
 
 const renderHome = asyncHandler(async (req, res) => {
     try {
@@ -51,6 +52,7 @@ const renderHome = asyncHandler(async (req, res) => {
     }
 })
 
+
 // Get specific post by ID
 
 const getPostById = async (req, res) => {
@@ -60,6 +62,7 @@ const getPostById = async (req, res) => {
         const userId = req.userId;
 
         const user = await User.findById(userId);
+
 
         if (!user) {
             res.status(404).json({ message: 'User not found' });
@@ -86,12 +89,20 @@ const getPostById = async (req, res) => {
         const nextPage = parseInt(page) + 1;
         const hasNextPage = nextPage <= Math.ceil(count / perPage);
 
+        const initialLikesCount = {};
+        for (const comment of comments) {
+            initialLikesCount[comment._id] = comment.likes;
+        }
+
+
         res.render('post', {
+            initialLikesCount,
             user,
             posts,
             comments,
             current: page,
             nextPage: hasNextPage ? nextPage : null,
+            userId
         });
 
     } catch (error) {
@@ -200,33 +211,41 @@ const updatePost = async (req, res) => {
     }
 }
 
-
+// Delete route for delete post
 
 const deletePost = async (req, res) => {
     try {
-        const id = req.params.id;
-        const post = await Post.findById(id);
+        const postId = req.params.id;
+        const post = await Post.findById(postId);
         const user = await User.findById(req.userId);
-        req.username = user.username;
 
         if (!post) {
             res.status(404).send('Post not found.');
             return;
         }
 
-        if (post.author !== req.username) {
-            res.status(403).send('You are not authorized to delete this post.');
-            return;
-        }
+        // Check if the user has admin role
+        if (user.role.includes('admin')) {
+            // Admin can delete any post
+            await Post.findByIdAndDelete(postId);
+            res.redirect('/dashboard');
+        } else {
+            // Regular user can only delete their own posts
+            if (post.author !== user.username) {
+                res.status(403).send('You are not authorized to delete this post.');
+                return;
+            }
 
-        await Post.findByIdAndDelete(id);
-        res.redirect('/dashboard');
+            await Post.findByIdAndDelete(postId);
+            res.redirect('/dashboard');
+        }
     } catch (error) {
         res.status(500);
         throw new Error(error.message);
     }
-}
+};
 
+// NOT IN USE
 
 // Postman test - Update multiple posts
 

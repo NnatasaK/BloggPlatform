@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/ws": "^8.5.10",
     "axios": "^1.6.7",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
@@ -32,7 +33,9 @@
     "nodemon": "^3.0.2",
     "punycode": "^2.3.1",
     "redis": "^4.6.12",
-    "util": "^0.12.5"
+    "socket.io": "^4.7.4",
+    "util": "^0.12.5",
+    "ws": "^8.16.0"
   },
   "description": ""
 }

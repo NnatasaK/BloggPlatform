@@ -3,10 +3,12 @@ const Post = require('../user_model/blogPosts');
 const User = require('../user_model/users');
 const { pageViews, getUsername, updateUsername, destroySession, scriptSomething, clickjacking, loginCheck, login, form, registerUser, loginUser, loginPage, dashboard, authMiddleware, userLogout, loginGitHub, oauthCallback, } = require('../User_Auth_Controller/AuthController');
 const { createPost, getPost, updatePost, getPostById, getEditPost, deletePost } = require('../User_Auth_Controller/postRouteController');
+const { deleteComment, likeComment } = require('../User_Auth_Controller/commentRouteController');
 
 
 
 const router = express.Router();
+
 
 router.get('/GitHub', loginGitHub);
 
@@ -32,11 +34,15 @@ router.put('/edit-post/:id', authMiddleware, updatePost);
 
 router.delete('/delete-post/:id', authMiddleware, deletePost);
 
+router.delete('/posts/delete-comment/:id', authMiddleware, deleteComment);
+
+/* router.post('/posts/:id', authMiddleware, likeComment); */
+
 router.get('/logout', userLogout);
 
 
 
-// Routes from here are for Postman testing or just for reference
+// Routes from here are for Postman testing or just for reference (NOT IN USE)
 
 router.post('/login', login);
 

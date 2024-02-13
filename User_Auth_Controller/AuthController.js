@@ -15,7 +15,7 @@ redisClient.hGet = util.promisify(redisClient.hGet); */
 const adminPage = '../views/layouts/admin';
 const jwtSecret = process.env.JWT_SECRET;
 
-// Admin - login page render
+// Admin - login page render (NOT IN USE)
 
 const loginPage = async (req, res) => {
     try {
@@ -28,7 +28,7 @@ const loginPage = async (req, res) => {
 };
 
 
-// Admin - register
+// User - register
 
 const registerUser = async (req, res) => {
     try {
@@ -57,62 +57,10 @@ const registerUser = async (req, res) => {
     }
 };
 
+// User - login
 
-
-// Admin - login protected ( bcrypt )
-// Only checking in Redis database, not MongoDB
-
-/* const loginUser = async (req, res) => {
-    try {
-        // Check if the user is authenticated with GitHub
-        if (req.session.userId) {
-            res.redirect("/dashboard");
-            return;
-        }
-
-        const { username, password } = req.body;
-
-        // Check if userId is already set
-        if (!req.userId) {
-            // for MongoDB also (extra code for learning purpose and reusability)
-            const user = await User.findOne({ username });
-
-            if (!user) {
-                return res.status(401).json('Invalid credentials');
-            }
-
-            const validPassword = await bcrypt.compare(password, user.password);
-
-            if (!validPassword) {
-                return res.status(401).json('Invalid credentials');
-            }
-
-            // Set userId in the request
-            req.userId = user._id;
-        }
-
-        // Set isLoggedIn in the session
-        req.session.isLoggedIn = true;
-
-        const token = jwt.sign({ userId: req.userId }, jwtSecret);
-        res.cookie('token', token, { httpOnly: true });
-        req.session.userId = req.userId;
-        res.redirect("/dashboard");
-    } catch (error) {
-        res.status(500);
-        throw new Error(error.message);
-    }
-};
-
- */
 const loginUser = async (req, res) => {
     try {
-        // Check if the user is authenticated with GitHub
-        if (req.session.userId) {
-            res.redirect("/dashboard");
-            return;
-        }
-
         const { username, password } = req.body;
 
         // Check if userId is already set
@@ -129,7 +77,7 @@ const loginUser = async (req, res) => {
                 return res.status(401).json('Invalid credentials');
             }
 
-            // Set userId in the request
+            // Set userId in the request 
             req.userId = user._id;
         }
 
@@ -141,6 +89,7 @@ const loginUser = async (req, res) => {
         req.session.userId = req.userId;
         res.redirect("/dashboard");
 
+
     } catch (error) {
         res.status(500);
         throw new Error(error.message);
@@ -148,7 +97,7 @@ const loginUser = async (req, res) => {
 };
 
 
-// Get Login trough GitHub
+// User - login trough GitHub
 
 
 const loginGitHub = async (req, res) => {
@@ -190,116 +139,29 @@ const oauthCallback = async (req, res) => {
         // Use the GitHub user information
         const userInfo = await getUserInfoFromGitHub(jsonResponse.access_token);
 
-        // Set session variables correctly
-        req.session.userId = userInfo.id.toString();  // Convert to string to avoid ObjectId casting issues
+        // Set session
+        req.session.userId = userInfo.id.toString();  // Why convert to string?
         req.session.username = userInfo.login;
 
-        // Check if the user already exists in your database based on GitHub user ID
+        // Check if the user already exists
         let user = await User.findOne({ githubId: req.session.userId });
 
-        // If the user doesn't exist, create a new user
+
         if (!user) {
             user = await User.create({ githubId: req.session.userId, username: req.session.username });
         }
 
-        // Continue with authentication
+
         const token = jwt.sign({ userId: user._id }, jwtSecret);
         res.cookie('token', token, { httpOnly: true });
 
         res.redirect("/dashboard");
-    } catch (error) {
-        console.error('Error in oauthCallback:', error);
-        res.status(500).send(error.message);
-    }
-};
-
-
-
-/* const getUserInfoFromGitHub = async (access_token) => {
-    const response = await fetch("https://api.github.com/user", {
-        headers: {
-            Authorization: `Bearer ${access_token}`,
-        },
-    });
-    return await response.json();
-};
-
-const oauthCallback = async (req, res) => {
-    try {
-        const code = req.query.code;
-
-        const response = await fetch("https://github.com/login/oauth/access_token", {
-            method: "POST",
-            body: new URLSearchParams({
-                client_id: process.env.CLIENT_ID,
-                client_secret: process.env.CLIENT_SECRET,
-                code: code,
-            }),
-            headers: {
-                Accept: "application/json",
-            },
-        });
-
-        const jsonResponse = await response.json();
-        req.session.username = await getUserInfoFromGitHub(jsonResponse.access_token);
-        req.session.userId = getUserInfoFromGitHub.id;
-        req.session.username = getUserInfoFromGitHub.login;
-        const token = jwt.sign({ userId: req.userId }, jwtSecret);
-        res.cookie('token', token, { httpOnly: true });
-
-        res.redirect("/dashboard");
-        //  res.send("Authentication successful!"); 
     } catch (error) {
         res.status(500);
         throw new Error(error.message);
     }
 };
 
- */
-
-
-
-// Checking if user exists in Redis, otherwise check MongoDB (dont know how to do it, try later!)
-
-// Admin - Check Login
-
-/* const authMiddleware = async (req, res, next) => {
-    try {
-        console.log('Checking authentication...');
-
-        const token = req.cookies.token;
-
-        if (!token) {
-            console.log('No token found.');
-            return res.status(401).send('Cannot access this page. Please log in first!');
-        }
-
-        const decoded = jwt.verify(token, jwtSecret);
-        req.userId = decoded.userId;
-
-        // Check if the user exists in your database based on GitHub OAuth login
-        const user = await User.findById(req.userId);
-
-        if (!user) {
-            console.log('User not found in the database.');
-            return res.status(401).send('User not found. Please log in again.');
-        }
-
-        req.username = user.username;
-        console.log('Authentication successful.');
-        next();
-    } catch (error) {
-        console.error('Authentication error:', error);
-        if (error.name === 'TokenExpiredError') {
-            return res.status(401).send('Token has expired. Please log in again.');
-        } else if (error.name === 'JsonWebTokenError') {
-            return res.status(401).send('Invalid token. Please log in again.');
-        } else {
-            return res.status(500).send(error.message);
-        }
-    }
-};
- */
 
 
 const authMiddleware = async (req, res, next) => {
@@ -313,7 +175,7 @@ const authMiddleware = async (req, res, next) => {
             const decoded = jwt.verify(token, jwtSecret);
             req.userId = decoded.userId;
 
-            // Check if the user exists in your database based on GitHub OAuth login
+
             const user = await User.findById(req.userId);
 
             if (!user) {
@@ -325,6 +187,7 @@ const authMiddleware = async (req, res, next) => {
             console.log('GitHub Authentication successful.');
             next();
         } else if (req.session.isLoggedIn && req.userId) {
+
             // Regular username/password login
             const user = await User.findById(req.userId);
 
@@ -347,7 +210,8 @@ const authMiddleware = async (req, res, next) => {
         } else if (error.name === 'JsonWebTokenError') {
             return res.status(401).send('Invalid token. Please log in again.');
         } else {
-            return res.status(500).send(error.message);
+            res.status(500);
+            throw new Error(error.message);
         }
     }
 };
@@ -367,16 +231,14 @@ const loginCheck = async (req, res) => {
 };
 
 
-// redirect to dashboard & pagination from postRouteController
-
+// Render dashboard & pagination from postRouteController (USING THIS ONE)
 
 const dashboard = async (req, res) => {
     try {
         const userId = req.userId;
 
-
         if (!userId) {
-            // Redirect to login if userId is not set
+
             res.redirect('/admin');
             return;
         }
@@ -384,7 +246,7 @@ const dashboard = async (req, res) => {
         const user = await User.findById(userId);
         req.userId = user._id;
         if (!user) {
-            // Redirect to login if user is not found
+
             res.redirect('/admin');
             return;
         }
@@ -392,39 +254,52 @@ const dashboard = async (req, res) => {
         let perPage = 5;
         let page = req.query.page || 1;
 
-        const posts = await Post.aggregate([{ $sort: { createdAt: -1 } }])
-            .skip(perPage * page - perPage)
-            .limit(perPage)
-            .exec();
+        // Get posts and post likes
+        const posts = await Post.aggregate([
+            { $sort: { createdAt: -1 } },
+            { $skip: perPage * page - perPage },
+            { $limit: perPage },
+            { $lookup: { from: 'likes', localField: '_id', foreignField: 'postId', as: 'likes' } },
+        ]);
 
         const count = await Post.countDocuments();
         const nextPage = parseInt(page) + 1;
         const hasNextPage = nextPage <= Math.ceil(count / perPage);
-        if (!posts || posts.length === 0) {
 
+        if (!posts || posts.length === 0) {
             res.status(404).json({ message: 'No posts found' });
             return;
         }
 
-        // Save posts to Redis 
-        const redisKey = 'posts';
+        // Extract userIds from likes
+        const userIdsArray = posts.reduce((acc, post) => {
+            return acc.concat(post.likes.map(like => like.userId));
+        }, []);
+
+        // Get usernames from the User model
+        const usernames = await User.find({ _id: { $in: userIdsArray } }, 'username');
+
+        // Note: half clear
         posts.forEach(post => {
-            const redisPostKey = `post:${post._id}`;
-            redisClient.set(redisPostKey, JSON.stringify(post));
+            post.usernames = post.likes.map(like => {
+                const user = usernames.find(u => u._id.toString() === like.userId.toString());
+                return user ? user.username : '';
+            });
         });
 
-
-        // Render the index view with posts
-
-
+        // Render the index view with posts (note : (acc))
         res.render('admin/dashboard', {
+            initialLikesCount: posts.reduce((acc, post) => {
+                acc[post._id] = post.likes.length;
+                return acc;
+            }, {}),
             posts,
             user,
             current: page,
             nextPage: hasNextPage ? nextPage : null,
-            layout: adminPage
+            layout: adminPage,
+            userId
         });
-
 
     } catch (error) {
         res.status(500);
@@ -432,13 +307,13 @@ const dashboard = async (req, res) => {
     }
 };
 
-// Admin - logout
+
+// User - logout
 
 const userLogout = async (req, res) => {
     try {
-        // Clear the token cookie
+
         res.clearCookie('token');
-        // Clear any other session-related data as needed
         req.session.destroy();
         res.redirect('/admin');
 
@@ -448,7 +323,9 @@ const userLogout = async (req, res) => {
     }
 }
 
-// Admin - basic login (just for reference)
+// NOTE: Everything from here is reference code (NOT IN USE)
+
+// User - basic login (just for reference)
 
 const login = async (req, res) => {
     try {

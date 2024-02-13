@@ -21,7 +21,14 @@ body {
 }
 
 a {
+    text-decoration: none;
     color: var(--black);
+    font-size: large;
+    font-weight: 600;
+}
+
+a:hover {
+    opacity: 70%;
 }
 
 h1 {
@@ -72,6 +79,10 @@ textarea {
     cursor: pointer;
 }
 
+.btn-GitHub:hover {
+    background-color: rgba(237, 245, 255, 0.5);
+}
+
 .btn {
     background-color: var(--black);
     font-size: var(--font-size-base);
@@ -85,14 +96,11 @@ textarea {
 }
 
 .btn-comment {
-    background-color: var(--black);
-    font-size: var(--font-size-xs);
-    border: none;
-    border-radius: 3px;
-    color: rgb(243, 243, 243);
-    padding: 8px 20px;
+    cursor: pointer;
+    background: none;
     text-decoration: none;
-    margin: 4px 2px;
+
+    border: none;
     cursor: pointer;
 }
 
@@ -108,18 +116,48 @@ textarea {
     cursor: pointer;
 }
 
-.btn-delete-comment {
-    background-color: var(--black);
-    color: rgb(243, 243, 243);
+/* .btn-delete-comment {
+    background: none;
+    color: #3f4d5a;
     font-size: var(--font-size-xs);
-    border: none;
+    font-weight: 600;
+    border: 0.5px solid #3f4d5a;
     border-radius: 3px;
     padding: 8px 10px;
     text-decoration: none;
     margin: 4px 2px;
     cursor: pointer;
+}  */
+.btn-like {
+    cursor: pointer;
+    background: none;
+    text-decoration: none;
+    border: none;
 }
 
+.icon-delete {
+    width: 25px;
+
+}
+
+.iconDelete {
+    width: 28px;
+
+}
+
+.btn-delete-comment {
+    cursor: pointer;
+    background: none;
+    text-decoration: none;
+    transform: translateY(2px);
+    border: none;
+
+}
+
+/* .heart {
+    transform: translateY(5px);
+}
+ */
 /* Layout */
 .container {
     max-width: 982px;
@@ -202,7 +240,7 @@ textarea {
     background-color: var(--black);
     color: var(--gray-light);
     border: 0;
-    text-decoration: none;
+    text-decoration: none !important;
     font-size: .8rem;
     padding: 4px 8px;
     line-height: 2;
@@ -228,4 +266,21 @@ textarea {
 .btn:hover,
 .btn-delete:hover {
     background-color: rgba(39, 39, 39, 0.893);
+}
+
+.btn-comment:hover,
+.btn-delete-comment:hover,
+.btn-like:hover {
+    opacity: 70%;
+}
+
+.notification {
+
+    position: fixed;
+    right: 40px;
+    top: 20px;
+    background-color: rgb(254, 250, 250);
+    padding: 10px;
+    border-radius: var(--border-radius);
+    box-shadow: 1px 1px 5px 1px #697d92d7;
 }

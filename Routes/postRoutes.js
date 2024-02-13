@@ -15,7 +15,7 @@ router.get('/home', renderHome);
 router.get('/', getPosts);
 router.get('/:id', authMiddleware, getPostById);  // except this one is used to render post.ejs
 router.post('/add', createPost);
-router.delete('/delete-comment/:id', authMiddleware, deleteComment);
+/* router.delete('/delete-comment/:id', authMiddleware, deleteComment); */
 router.put('/:id', updatePost);
 router.post('/', updatePosts);
 router.delete('/', deletePost);
