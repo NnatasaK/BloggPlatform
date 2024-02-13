@@ -38,8 +38,9 @@ app.use(cors());
 const io = initializeSocket(server);
 app.io = io;
 
+// NOTE: not clear
 app.use((req, res, next) => {
-  res.setHeader('Content-Security-Policy', "script-src 'self' http://localhost:3000;"); // Add http://localhost:3000 to script-src
+  res.setHeader('Content-Security-Policy', "script-src 'self' http://localhost:3000;");
   next();
 });
 
@@ -113,6 +114,8 @@ process.on('SIGINT', async () => {
 // Note:  Learn better the order of things
 
 // Note:  Save MongoDB connection into a separate file
+
+// Note: All data is in MongoDB and sessions are in Redis (learn that better *some data was saved and then it was gone)
 
 
 /*
